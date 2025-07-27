@@ -1,7 +1,9 @@
 import React from 'react';
+import MapSelector from './MapSelector';
 import { useForm } from 'react-hook-form';
 import { Calendar, MapPin, Settings, CheckCircle, AlertCircle, Zap } from 'lucide-react';
 import { validateCoordinates, validateDate } from '../utils/validation';
+import papallactaMap from '../assets/papallacta-map.png';
 
 const ANALYSIS_TYPES = [
     { id: 'general', label: 'General', description: 'Análisis meteorológico general' },
@@ -21,6 +23,7 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
         const msPorHora = 1000 * 60 * 60;
         return Math.max(1, Math.round((fecha - hoy) / msPorHora));
     };
+    
     const {
         register,
         handleSubmit,
@@ -30,8 +33,8 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
     } = useForm({
         defaultValues: {
             date: '',
-            latitude: '',
-            longitude: '',
+            latitude: -0.37768,  // Actualizado al centro de Papallacta
+            longitude: -78.14089, // Actualizado al centro de Papallacta
             include_analysis: false,
             analysis_types: [],
         },
@@ -40,6 +43,12 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
     const includeAnalysis = watch('include_analysis');
     const analysisTypes = watch('analysis_types');
 
+    // Actualiza lat/lon cuando el usuario selecciona en el mapa
+    const handleMapChange = ({ latitude, longitude }) => {
+        setValue('latitude', latitude);
+        setValue('longitude', longitude);
+    };
+
     const handleAnalysisTypeChange = (typeId) => {
         const current = analysisTypes || [];
         const updated = current.includes(typeId)
@@ -47,7 +56,6 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
             : [...current, typeId];
         setValue('analysis_types', updated);
     };
-
 
     const onFormSubmit = (data) => {
         const steps_a_futuro = calcularStepsAFuturo(data.date);
@@ -108,54 +116,12 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
                     )}
                 </div>
 
-                {/* Coordinates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
-                            <MapPin className="inline-block w-4 h-4 mr-2" />
-                            Latitud
-                        </label>
-                        <input
-                            type="number"
-                            step="any"
-                            placeholder="-0.35"
-                            {...register('latitude', {
-                                required: 'La latitud es requerida',
-                                validate: validateCoordinates.latitude,
-                            })}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-agricultural-green focus:ring-2 focus:ring-agricultural-green focus:ring-opacity-20 transition-colors"
-                        />
-                        {errors.latitude && (
-                            <p className="mt-1 text-sm text-red-600 flex items-center">
-                                <AlertCircle className="w-4 h-4 mr-1" />
-                                {errors.latitude.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-text-primary mb-2">
-                            <MapPin className="inline-block w-4 h-4 mr-2" />
-                            Longitud
-                        </label>
-                        <input
-                            type="number"
-                            step="any"
-                            placeholder="-78.17"
-                            {...register('longitude', {
-                                required: 'La longitud es requerida',
-                                validate: validateCoordinates.longitude,
-                            })}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-agricultural-green focus:ring-2 focus:ring-agricultural-green focus:ring-opacity-20 transition-colors"
-                        />
-                        {errors.longitude && (
-                            <p className="mt-1 text-sm text-red-600 flex items-center">
-                                <AlertCircle className="w-4 h-4 mr-1" />
-                                {errors.longitude.message}
-                            </p>
-                        )}
-                    </div>
-                </div>
+                {/* Selector de mapa para coordenadas */}
+                <MapSelector
+                    value={[watch('latitude'), watch('longitude')]}
+                    onChange={handleMapChange}
+                    mapImageUrl={papallactaMap}
+                />
 
                 {/* Include Analysis Checkbox */}
                 <div>
