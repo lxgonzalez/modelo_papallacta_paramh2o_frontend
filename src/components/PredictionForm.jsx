@@ -2,7 +2,6 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Calendar, MapPin, Settings, CheckCircle, AlertCircle, Zap } from 'lucide-react';
 import { validateCoordinates, validateDate } from '../utils/validation';
-import { demoFormData } from '../utils/demoData';
 
 const ANALYSIS_TYPES = [
     { id: 'general', label: 'General', description: 'Análisis meteorológico general' },
@@ -15,6 +14,13 @@ const ANALYSIS_TYPES = [
 ];
 
 const PredictionForm = ({ onSubmit, isLoading }) => {
+    // Calcula steps_a_futuro en horas entre hoy y la fecha seleccionada
+    const calcularStepsAFuturo = (fechaSolicitada) => {
+        const hoy = new Date();
+        const fecha = new Date(fechaSolicitada);
+        const msPorHora = 1000 * 60 * 60;
+        return Math.max(1, Math.round((fecha - hoy) / msPorHora));
+    };
     const {
         register,
         handleSubmit,
@@ -42,19 +48,14 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
         setValue('analysis_types', updated);
     };
 
-    const loadDemoData = () => {
-        setValue('date', demoFormData.date);
-        setValue('latitude', demoFormData.latitude);
-        setValue('longitude', demoFormData.longitude);
-        setValue('include_analysis', demoFormData.include_analysis);
-        setValue('analysis_types', demoFormData.analysis_types);
-    };
 
     const onFormSubmit = (data) => {
+        const steps_a_futuro = calcularStepsAFuturo(data.date);
         const payload = {
             date: data.date,
             latitude: parseFloat(data.latitude),
             longitude: parseFloat(data.longitude),
+            steps_a_futuro,
             include_analysis: data.include_analysis,
             analysis_types: data.include_analysis ? data.analysis_types : [],
         };
@@ -81,6 +82,18 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
                     </label>
                     <input
                         type="date"
+                        min={(() => {
+                            const today = new Date();
+                            const minDate = new Date(today);
+                            minDate.setDate(today.getDate() - 30);
+                            return minDate.toISOString().split('T')[0];
+                        })()}
+                        max={(() => {
+                            const today = new Date();
+                            const maxDate = new Date(today);
+                            maxDate.setDate(today.getDate() + 30);
+                            return maxDate.toISOString().split('T')[0];
+                        })()}
                         {...register('date', {
                             required: 'La fecha es requerida',
                             validate: validateDate

@@ -20,20 +20,16 @@ export const validateDate = (value) => {
     if (!value) return 'La fecha es requerida';
 
     const selectedDate = new Date(value);
+    selectedDate.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() - 30);
+    minDate.setHours(0, 0, 0, 0);
 
-    if (selectedDate < today) {
-        return 'La fecha debe ser hoy o posterior';
-    }
-
-    // Check if date is not too far in the future (e.g., 1 year)
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-    if (selectedDate > oneYearFromNow) {
-        return 'La fecha no puede ser superior a un año';
-    }
+   // if (selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > today.getTime()) {
+   //     return `La fecha debe estar entre ${minDate.toLocaleDateString('es-ES')} y hoy (${today.toLocaleDateString('es-ES')})`;
+   // }
 
     return true;
 };
@@ -51,7 +47,7 @@ export const formatDate = (dateString) => {
             month: 'long',
             day: 'numeric',
         });
-    } catch (error) {
+    } catch {
         return dateString;
     }
 };

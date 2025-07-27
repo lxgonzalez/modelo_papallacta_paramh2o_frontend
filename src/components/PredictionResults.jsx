@@ -11,13 +11,16 @@ import {
     AlertTriangle,
     Info,
     Sprout,
+    CloudRain,
 } from 'lucide-react';
 import { formatCoordinate, formatDate, formatTemperature, formatPercentage, formatSpeed, formatPressure } from '../utils/validation';
 
 const PredictionResults = ({ prediction, onReset }) => {
-    if (!prediction) return null;
+if (!prediction) return null;
 
-    const { weather_data, analysis } = prediction;
+const { weather_data, agricultural_analysis, analysis } = prediction;
+// Usar agricultural_analysis si existe, sino analysis (compatibilidad)
+const analysisData = agricultural_analysis || analysis || {};
 
     const WeatherCard = ({ icon: Icon, title, value, unit, description }) => (
         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
@@ -93,7 +96,7 @@ const PredictionResults = ({ prediction, onReset }) => {
 
                 {/* Weather Overview */}
                 {weather_data && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <WeatherCard
                             icon={Thermometer}
                             title="Temperatura"
@@ -109,25 +112,25 @@ const PredictionResults = ({ prediction, onReset }) => {
                             description="Humedad relativa del aire"
                         />
                         <WeatherCard
-                            icon={Wind}
-                            title="Viento"
-                            value={weather_data.wind_speed?.toFixed(1) || 'N/A'}
-                            unit="km/h"
-                            description="Velocidad del viento"
+                            icon={CloudRain}
+                            title="Precipitación"
+                            value={weather_data.precipitation?.toFixed(1) || 'N/A'}
+                            unit="l/m²"
+                            description="Precipitación"
                         />
-                        <WeatherCard
+                        {/*<WeatherCard
                             icon={Gauge}
                             title="Presión"
                             value={weather_data.pressure?.toFixed(0) || 'N/A'}
                             unit="hPa"
                             description="Presión atmosférica"
-                        />
+                        />*/}
                     </div>
                 )}
             </div>
 
             {/* Analysis Results */}
-            {analysis && Object.keys(analysis).length > 0 && (
+            {analysisData && Object.keys(analysisData).length > 0 && (
                 <div className="bg-white rounded-2xl shadow-lg p-8">
                     <h3 className="text-2xl font-bold text-text-primary mb-6 flex items-center">
                         <Sprout className="w-6 h-6 mr-3 text-agricultural-green" />
@@ -135,64 +138,59 @@ const PredictionResults = ({ prediction, onReset }) => {
                     </h3>
 
                     <div className="space-y-6">
-                        {analysis.general && (
+                        {/* Mostrar resumen_climatico si existe */}
+                        {analysisData.resumen_climatico && (
                             <AnalysisSection
-                                title="Análisis General"
-                                content={analysis.general}
+                                title="Resumen Climático"
+                                content={analysisData.resumen_climatico}
                                 icon={Info}
                                 type="info"
                             />
                         )}
-
-                        {analysis.cultivos && (
+                        {analysisData.recomendaciones_cultivos && (
                             <AnalysisSection
                                 title="Recomendaciones para Cultivos"
-                                content={analysis.cultivos}
+                                content={analysisData.recomendaciones_cultivos}
                                 icon={Sprout}
                                 type="success"
                             />
                         )}
-
-                        {analysis.riego && (
+                        {analysisData.manejo_riego && (
                             <AnalysisSection
                                 title="Optimización del Riego"
-                                content={analysis.riego}
+                                content={analysisData.manejo_riego}
                                 icon={Droplets}
                                 type="info"
                             />
                         )}
-
-                        {analysis.alertas && (
+                        {analysisData.alertas && (
                             <AnalysisSection
                                 title="Alertas Meteorológicas"
-                                content={analysis.alertas}
+                                content={analysisData.alertas}
                                 icon={AlertTriangle}
                                 type="warning"
                             />
                         )}
-
-                        {analysis.cronograma && (
+                        {analysisData.cronograma_agricola && (
                             <AnalysisSection
                                 title="Planificación Agrícola"
-                                content={analysis.cronograma}
+                                content={analysisData.cronograma_agricola}
                                 icon={Calendar}
                                 type="info"
                             />
                         )}
-
-                        {analysis.plagas && (
+                        {analysisData.manejo_plagas && (
                             <AnalysisSection
                                 title="Control de Plagas"
-                                content={analysis.plagas}
+                                content={analysisData.manejo_plagas}
                                 icon={Eye}
                                 type="warning"
                             />
                         )}
-
-                        {analysis.suelo && (
+                        {analysisData.conservacion_suelo && (
                             <AnalysisSection
                                 title="Análisis del Suelo"
-                                content={analysis.suelo}
+                                content={analysisData.conservacion_suelo}
                                 icon={Gauge}
                                 type="info"
                             />
